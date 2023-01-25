@@ -12,11 +12,20 @@ log = logging.getLogger(__name__)
 
 
 class SeekableLDIFParser(LDIFParser):
+    """This subclass of LDIFParser can build an index for random access
+
+    This makes it large LDIF files easier to handle. In this case, the
+    parser needs a reference to the snapshot object so it can access some
+    extra information.
+    """
+
     def __init__(self, fp, snapshot, **kwargs):
         super().__init__(fp, **kwargs)
         self.snapshot = snapshot
 
     def build_index(self):
+        """Build the index, which is a dict mapping the DN to the position in the file"""
+
         if self.byte_counter:
             raise RuntimeError("Index can only be built before first parsing")
 
@@ -56,6 +65,10 @@ class SeekableLDIFParser(LDIFParser):
 
 
 class Object(object):
+    """Represents an LDAP object
+
+    Must be sufficiently compatible with ADExplorerSnapshot objects"""
+
     def __init__(self, data, snapshot):
         self._data = CaseInsensitiveDict(data)
         self.snapshot = snapshot
@@ -70,7 +83,7 @@ class Object(object):
             'systemFlags': int,
             'adminCount': int,
             'whenCreated': convert_timestamp,
-            'objectSid': sid_to_str,
+            'objectSid': convert_sid,
             'objectGUID': convert_GUID,
         }
 
@@ -91,6 +104,8 @@ class Object(object):
             return None
 
     def __getattr__(self, attr):
+        # Quite hacky solution
+
         if attr.startswith('__') and attr.endswith('__'):
             raise AttributeError
 
@@ -110,15 +125,21 @@ class Object(object):
         return result
 
     def __getitem__(self, key):
+        # This object wants to be accessed like an ldap3 object:
+        # object['attributes']['key']
+
         if key == 'attributes':
             return self._data
         elif key == 'raw_attributes':
+            # Seems to work like this
             return self._data
         else:
             raise AttributeError
 
 
 class LDIFSnapshot(object):
+    """A class compatible with ADExplorerSnapshot's `Snapshot` class"""
+
     def __init__(self, path, log=None):
         fp = open(path, 'rb')
         self._P = SeekableLDIFParser(fp, snapshot=self)
@@ -214,7 +235,7 @@ def convert_timestamp(date):
     return time_object
 
 
-def sid_to_str(sid):
+def convert_sid(sid):
     """ Converts a hexadecimal string returned from the LDAP query to a
     string version of the SID in format of S-1-5-21-1270288957-3800934213-3019856503-500
     This function was based from: http://www.gossamer-threads.com/lists/apache/bugs/386930
