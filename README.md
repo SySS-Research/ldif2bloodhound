@@ -32,6 +32,14 @@ $ ldif2bloodhound output_*.ldif
 
 For more options, run `ldif2bloodhound --help`.
 
+The obvious limitation is that you won't get information about sessions or
+local group memberships, just like with
+[ADExplorerSnapshot.py](https://github.com/c3c/ADExplorerSnapshot.py).
+Parsing LDIF data is more equivalent to running SharpHound with `-c DCOnly`
+(perhaps even less).
+[BloodHound.py](https://github.com/fox-it/BloodHound.py) is a better choice
+to collect this data in most scenarios.
+
 
 Installation
 ------------
