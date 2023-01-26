@@ -22,6 +22,10 @@ $ for base in "" "CN=Schema,CN=Configuration," ; do \
     ; done >> output_$(date +%s).ldif
 ```
 
+In case StartTLS does not work, remove the `-ZZ` flag and replace
+`ldap://` with `ldaps://`. Or leave it at `ldap://` if you like to live
+dangerously.
+
 The second `-E` argument is needed so that ACLs are also dumped.
 
 Then, the conversion works as follows:
