@@ -45,7 +45,7 @@ def main():
 
     ades = ADExplorerSnapshot(
         args.input,
-        args.output,
+        args.output_dir,
         log=log,
         snapshot_parser=LDIFSnapshot,
     )
