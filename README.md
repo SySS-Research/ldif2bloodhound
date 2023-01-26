@@ -40,6 +40,10 @@ Parsing LDIF data is more equivalent to running SharpHound with `-c DCOnly`
 [BloodHound.py](https://github.com/fox-it/BloodHound.py) is a better choice
 to collect this data in most scenarios.
 
+This package is based on a
+[fork](https://github.com/AdrianVollmer/ADExplorerSnapshot.py) of
+ADExplorerSnapshot.py.
+
 
 Installation
 ------------
