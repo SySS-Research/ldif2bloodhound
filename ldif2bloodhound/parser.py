@@ -14,9 +14,10 @@ log = logging.getLogger(__name__)
 class SeekableLDIFParser(LDIFParser):
     """This subclass of LDIFParser can build an index for random access
 
-    This makes it large LDIF files easier to handle. In this case, the
-    parser needs a reference to the snapshot object so it can access some
-    extra information.
+    This makes large LDIF files easier to handle. In this case, the parser
+    needs a reference to the snapshot object. It will be passed to objects
+    which are parsed from blocks, so they can access some extra information.
+    (In particular the `category` property.)
     """
 
     def __init__(self, fp, snapshot, **kwargs):
@@ -92,6 +93,8 @@ class Object(object):
                 self._data[attr] = list(map(_type, self._data[attr]))
 
     def _category(self):
+        # copied mostly from ADExplorerSnapshot
+
         catDN = self.objectCategory
         if not catDN:
             return None
@@ -109,7 +112,7 @@ class Object(object):
         if attr.startswith('__') and attr.endswith('__'):
             raise AttributeError
 
-        # This is a special attribute; copy from ADExplorerSnapshot
+        # This is a special attribute
         if attr == 'category':
             return self._category()
 
@@ -126,7 +129,7 @@ class Object(object):
 
     def __getitem__(self, key):
         # This object wants to be accessed like an ldap3 object:
-        # object['attributes']['key']
+        # object['attributes'][key]
 
         if key == 'attributes':
             return self._data
@@ -152,7 +155,8 @@ class LDIFSnapshot(object):
             'filetimeUnix server mappingOffset numObjects filetime'.split(),
         )
 
-        # We don't know these things, they are not included in the LDIF file
+        # We don't know these things, they are not included in the LDIF
+        # file, but the dependecy expects something here.
         self.header = Header(
             filetimeUnix=os.path.getmtime(self.path),
             server='ldifdump',
@@ -171,9 +175,6 @@ class LDIFSnapshot(object):
         self.properties = []
 
         for obj in self.objects:
-            # Objects need to know about classes for `category` property
-            obj._classes = self.classes
-
             # Mimic the behavior of ADExplorerSnapshot
             if 'classSchema' in obj.classes:
                 cn = obj.cn[0]
@@ -187,7 +188,6 @@ class LDIFSnapshot(object):
                 cn = obj.cn[0]
                 dn = obj.distinguishedName[0]
 
-                #  prop = Property(self, in_obj)
                 idx = len(self.properties)
                 self.properties.append(obj)
                 #  abuse our dict for both DNs and the display name / cn
