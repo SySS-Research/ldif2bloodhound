@@ -18,7 +18,7 @@ setuptools.setup(
     },
     install_requires=[
         'ldif',
-        'adexplorersnapshot@git+https://github.com/AdrianVollmer/ADExplorerSnapshot.py.git',
+        'adexplorersnapshot@git+https://github.com/c3c/ADExplorerSnapshot.py.git',
     ],
     python_requires='>=3.7',
     tests_require=[
