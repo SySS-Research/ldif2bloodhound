@@ -34,11 +34,11 @@ class SeekableLDIFParser(LDIFParser):
 
         pos = 0
         for block in self._iter_blocks():
-            first_line = block[0].partition(b'\n')[0]
+            first_line = block[0].partition(b"\n")[0]
 
-            if first_line.startswith(b'dn: '):
+            if first_line.startswith(b"dn: "):
                 dn = first_line[4:].decode()
-            elif first_line.startswith(b'dn:: '):
+            elif first_line.startswith(b"dn:: "):
                 dn = first_line[5:]
                 dn = base64.b64decode(dn).decode()
             else:
@@ -79,13 +79,13 @@ class Object(object):
         """Everything is a string in LDIF, so convert as needed"""
 
         types = {
-            'userAccountControl': int,
-            'sAMAccountType': int,
-            'systemFlags': int,
-            'adminCount': int,
-            'whenCreated': convert_timestamp,
-            'objectSid': convert_sid,
-            'objectGUID': convert_GUID,
+            "userAccountControl": int,
+            "sAMAccountType": int,
+            "systemFlags": int,
+            "adminCount": int,
+            "whenCreated": convert_timestamp,
+            "objectSid": convert_sid,
+            "objectGUID": convert_GUID,
         }
 
         for attr, _type in types.items():
@@ -109,17 +109,17 @@ class Object(object):
     def __getattr__(self, attr):
         # Quite hacky solution
 
-        if attr.startswith('__') and attr.endswith('__'):
+        if attr.startswith("__") and attr.endswith("__"):
             raise AttributeError
 
         # This is a special attribute
-        if attr == 'category':
+        if attr == "category":
             return self._category()
 
         # ADExplorer sometimes uses different attribute names
         attr_map = {
-            'classes': 'objectClass',
-            'schemaIDGUID': 'objectGUID',
+            "classes": "objectClass",
+            "schemaIDGUID": "objectGUID",
         }
 
         attr = attr_map.get(attr, attr)
@@ -131,9 +131,9 @@ class Object(object):
         # This object wants to be accessed like an ldap3 object:
         # object['attributes'][key]
 
-        if key == 'attributes':
+        if key == "attributes":
             return self._data
-        elif key == 'raw_attributes':
+        elif key == "raw_attributes":
             # Seems to work like this
             return self._data
         else:
@@ -144,25 +144,25 @@ class LDIFSnapshot(object):
     """A class compatible with ADExplorerSnapshot's `Snapshot` class"""
 
     def __init__(self, path, log=None):
-        fp = open(path, 'rb')
+        fp = open(path, "rb")
         self._P = SeekableLDIFParser(fp, snapshot=self)
         self.path = path
 
     def parseHeader(self):
         self._P.build_index()
         Header = collections.namedtuple(
-            'Header',
-            'filetimeUnix server mappingOffset numObjects filetime'.split(),
+            "Header",
+            "filetimeUnix server mappingOffset numObjects filetime".split(),
         )
 
         # We don't know these things, they are not included in the LDIF
         # file, but the dependecy expects something here.
         self.header = Header(
             filetimeUnix=os.path.getmtime(self.path),
-            server='ldifdump',
+            server="ldifdump",
             mappingOffset=0,
             numObjects=len(self._P._index),
-            filetime='',
+            filetime="",
         )
 
     def parseProperties(self):
@@ -176,15 +176,15 @@ class LDIFSnapshot(object):
 
         for obj in self.objects:
             # Mimic the behavior of ADExplorerSnapshot
-            if 'classSchema' in obj.classes:
+            if "classSchema" in obj.classes:
                 cn = obj.cn[0]
                 dn = obj.distinguishedName[0]
 
                 self.classes[cn] = obj
                 self.classes[dn] = obj
-                self.classes[dn.split(',')[0].split('=')[1]] = obj
+                self.classes[dn.split(",")[0].split("=")[1]] = obj
 
-            if 'attributeSchema' in obj.classes:
+            if "attributeSchema" in obj.classes:
                 cn = obj.cn[0]
                 dn = obj.distinguishedName[0]
 
@@ -193,7 +193,7 @@ class LDIFSnapshot(object):
                 #  abuse our dict for both DNs and the display name / cn
                 self.propertyDict[cn] = idx
                 self.propertyDict[dn] = idx
-                self.propertyDict[dn.split(',')[0].split('=')[1]] = idx
+                self.propertyDict[dn.split(",")[0].split("=")[1]] = idx
 
     def parseObjectOffsets(self):
         # Not needed, we already have the offsets from `build_index`
@@ -213,10 +213,10 @@ class LDIFSnapshot(object):
 
 def convert_GUID(guid):
     order = [4, 3, 2, 1, 6, 5, 8, 7, 9, 10, 11, 12, 13, 14, 15, 16]
-    result = ''
+    result = ""
 
     for i in order:
-        result += '%x' % guid[i-1]
+        result += "%x" % guid[i - 1]
 
     return result
 
@@ -228,7 +228,7 @@ def convert_timestamp(date):
     """
     import datetime
 
-    time_string = date.split('.')[0]
+    time_string = date.split(".")[0]
     time_object = datetime.datetime.strptime(time_string, "%Y%m%d%H%M%S")
     time_object = int(time_object.timestamp())
 
@@ -236,7 +236,7 @@ def convert_timestamp(date):
 
 
 def convert_sid(sid):
-    """ Converts a hexadecimal string returned from the LDAP query to a
+    """Converts a hexadecimal string returned from the LDAP query to a
     string version of the SID in format of S-1-5-21-1270288957-3800934213-3019856503-500
     This function was based from: http://www.gossamer-threads.com/lists/apache/bugs/386930
 
@@ -261,14 +261,15 @@ def convert_sid(sid):
     # ">Q" is the format string. ">" specifies that the bytes are big-endian.
     # The "Q" specifies "unsigned long long" because 8 bytes are being decoded.
     # Since the actual SID section being decoded is only 6 bytes, we must precede it with 2 empty bytes.
-    iav = struct.unpack('>Q', b'\x00\x00' + sid[2:8])[0]
+    iav = struct.unpack(">Q", b"\x00\x00" + sid[2:8])[0]
     # The sub-ids include the Domain SID and the RID representing the object
     # '<I' is the format string. "<" specifies that the bytes are little-endian. "I" specifies "unsigned int".
     # This decodes in 4 byte chunks starting from the 8th byte until the last byte
-    sub_ids = [struct.unpack('<I', sid[8 + 4 * i:12 + 4 * i])[0]
-               for i in range(number_of_sub_ids)]
+    sub_ids = [
+        struct.unpack("<I", sid[8 + 4 * i : 12 + 4 * i])[0]
+        for i in range(number_of_sub_ids)
+    ]
 
-    return 'S-{0}-{1}-{2}'.format(revision, iav, '-'.join([
-        str(sub_id)
-        for sub_id in sub_ids
-    ]))
+    return "S-{0}-{1}-{2}".format(
+        revision, iav, "-".join([str(sub_id) for sub_id in sub_ids])
+    )

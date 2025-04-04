@@ -5,19 +5,21 @@ def parse_args():
         description=(
             """Convert an LDIF file to JSON files ingestible by BloodHound
 
-Based on ADExplorerSnapshot.py. By Adrian Vollmer, SySS GmbH."""),
+Based on ADExplorerSnapshot.py. By Adrian Vollmer, SySS GmbH."""
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
     parser.add_argument(
-        'input',
+        "input",
         type=str,
         help="path to the input LDIF file",
     )
 
     parser.add_argument(
-        '-o', '--output-dir',
-        default='.',
+        "-o",
+        "--output-dir",
+        default=".",
         help="path to the output directory (default: %(default)s)",
     )
 
@@ -53,5 +55,5 @@ def main():
     ades.outputBloodHound()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
