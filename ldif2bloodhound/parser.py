@@ -157,12 +157,14 @@ class LDIFSnapshot(object):
 
         # We don't know these things, they are not included in the LDIF
         # file, but the dependecy expects something here.
+        filetime = os.path.getmtime(self.path)
+        path = str(os.path.abspath(self.path)).replace(os.sep, "_")
         self.header = Header(
-            filetimeUnix=os.path.getmtime(self.path),
-            server="ldifdump",
+            filetimeUnix=filetime,
+            server="ldifdump" + path,
             mappingOffset=0,
             numObjects=len(self._P._index),
-            filetime="",
+            filetime=str(filetime),
         )
 
     def parseProperties(self):
