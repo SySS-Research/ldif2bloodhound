@@ -50,7 +50,9 @@ Installation
 Install with this command:
 
 ```console
-$ pip install git+https://github.com/SySS-Research/ldif2bloodhound
+$ uv tool install git+https://github.com/SySS-Research/ldif2bloodhound
+# Alternatively:
+$ pipx install git+https://github.com/SySS-Research/ldif2bloodhound
 ```
 
 Copyright and License
