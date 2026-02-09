@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ldif2bloodhound"
+version = "0.0.0"
+description = "Convert a LDIF file to JSON files ingestible by BloodHound"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    {name = "Adrian Vollmer", email = "adrian.vollmer@syss.de"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "ldif",
+    "adexplorersnapshot @ git+https://github.com/c3c/ADExplorerSnapshot.py.git",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+
+[project.scripts]
+ldif2bloodhound = "ldif2bloodhound.__main__:main"
+
+[tool.ruff]
+line-length = 120
