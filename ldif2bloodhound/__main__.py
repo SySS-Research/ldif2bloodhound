@@ -28,30 +28,15 @@ Based on ADExplorerSnapshot.py. By Adrian Vollmer, SySS GmbH."""
     return args
 
 
-def main():
-    import logging
-
+def main() -> None:
     from adexpsnapshot import ADExplorerSnapshot
     from ldif2bloodhound.parser import LDIFSnapshot
-
-    try:
-        import pwnlib
-        logging.basicConfig(handlers=[pwnlib.log.console])
-        log = pwnlib.log.getLogger(__name__)
-        log.setLevel(20)
-
-        if pwnlib.term.can_init():
-            pwnlib.term.init()
-        log.term_mode = pwnlib.term.term_mode
-    except ImportError:
-        pass
 
     args = parse_args()
 
     ades = ADExplorerSnapshot(
         args.input,
         args.output_dir,
-        log=log,
         snapshot_parser=LDIFSnapshot,
     )
 
