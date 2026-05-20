@@ -1,6 +1,9 @@
-def parse_args():
-    import argparse
+from __future__ import annotations
 
+import argparse
+
+
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             """Convert LDIF files to JSON files ingestible by BloodHound
@@ -29,20 +32,20 @@ Based on ADExplorerSnapshot.py. By Adrian Vollmer, SySS GmbH."""
         help="path to the output directory (default: %(default)s)",
     )
 
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def main() -> None:
     import sys
     from pathlib import Path
+
     from adexpsnapshot import ADExplorerSnapshot
+
     from ldif2bloodhound.parser import LDIFSnapshot
 
-    args = parse_args()
+    args: argparse.Namespace = parse_args()
 
-    output_dir = Path(args.output_dir)
+    output_dir: Path = Path(args.output_dir)
     if not output_dir.is_dir():
         print(
             f"Error: output directory '{args.output_dir}' does not exist or is not a directory.",
@@ -52,7 +55,7 @@ def main() -> None:
 
     LDIFSnapshot.schema_path = Path(args.schema)
 
-    ades = ADExplorerSnapshot(
+    ades: ADExplorerSnapshot = ADExplorerSnapshot(
         Path(args.base_dn),
         args.output_dir,
         snapshot_parser=LDIFSnapshot,

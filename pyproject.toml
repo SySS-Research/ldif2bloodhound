@@ -30,3 +30,27 @@ ldif2bloodhound = "ldif2bloodhound.__main__:main"
 
 [tool.ruff]
 line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    #  "N",  # pep8-naming
+    "UP", # pyupgrade
+    "B",  # flake8-bugbear
+    "S",  # flake8-bandit
+    "A",  # flake8-builtins
+    "C4", # Catch incorrect use of comprehensions, dict, list, etc
+    "PTH", # Use pathlib instead of os.path
+    "C90", # maccabe complexity
+    "BLE", # flake8-blind-except
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.0",
+    "pyright>=1.1.409",
+    "ruff>=0.15.13",
+]
