@@ -1,25 +1,21 @@
 ldif2bloodhound
 ===============
 
-Convert an LDIF file to JSON files ingestible by BloodHound.
+Convert LDIF files to JSON files ingestible by BloodHound.
 
-The LDIF file should be retrieved like this with `ldapsearch`:
+Two separate LDIF files are required: one for the base DN and one for the
+schema tree. Retrieve them with `ldapsearch` like this:
 
 ```console
-$ for base in "" "CN=Schema,CN=Configuration," ; do \
-    LDAPTLS_REQCERT=never ldapsearch \
-    -H ldap://<DC> \
-    -D <USERNAME>@corp.local \
-    -w <PASSWORD> \
-    -b "${base}DC=corp,DC=local" \
-    -x \
-    -o ldif-wrap=no \
-    -E pr=1000/noprompt \
-    -E '!1.2.840.113556.1.4.801=::MAMCAQc=' \
-    -LLL \
-    -ZZ \
-    '(objectClass=*)' \
-    ; done >> output_$(date +%s).ldif
+$ LDAP_OPTS="-H ldap://<DC> -D <USERNAME>@corp.local -w <PASSWORD> -x \
+    -o ldif-wrap=no -E pr=1000/noprompt \
+    -E '!1.2.840.113556.1.4.801=::MAMCAQc=' -LLL -ZZ"
+
+$ LDAPTLS_REQCERT=never ldapsearch $LDAP_OPTS \
+    -b "DC=corp,DC=local" '(objectClass=*)' > base_dn.ldif
+
+$ LDAPTLS_REQCERT=never ldapsearch $LDAP_OPTS \
+    -b "CN=Schema,CN=Configuration,DC=corp,DC=local" '(objectClass=*)' > schema.ldif
 ```
 
 In case StartTLS does not work, remove the `-ZZ` flag and replace
@@ -31,7 +27,7 @@ The second `-E` argument is needed so that ACLs are also dumped.
 Then, the conversion works as follows:
 
 ```console
-$ ldif2bloodhound output_*.ldif
+$ ldif2bloodhound base_dn.ldif schema.ldif
 ```
 
 For more options, run `ldif2bloodhound --help`.

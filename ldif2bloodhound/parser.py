@@ -141,15 +141,34 @@ class Object(object):
 
 
 class LDIFSnapshot(object):
-    """A class compatible with ADExplorerSnapshot's `Snapshot` class"""
+    """A class compatible with ADExplorerSnapshot's `Snapshot` class
 
-    def __init__(self, path, log=None):
-        fp = open(path, "rb")
-        self._P = SeekableLDIFParser(fp, snapshot=self)
-        self.path = path
+    Requires two LDIF files: the base DN path is passed to __init__,
+    the schema path must be set as a class attribute before instantiation:
+
+        LDIFSnapshot.schema_path = Path("schema.ldif")
+    """
+
+    schema_path = None
+
+    def __init__(self, base_dn_path, log=None):
+        if self.schema_path is None:
+            raise ValueError("LDIFSnapshot.schema_path must be set before instantiation")
+
+        fp_base = open(base_dn_path, "rb")
+        fp_schema = open(self.schema_path, "rb")
+
+        self._base_parser = SeekableLDIFParser(fp_base, snapshot=self)
+        self._schema_parser = SeekableLDIFParser(fp_schema, snapshot=self)
+        self._base_path = base_dn_path
 
     def parseHeader(self):
-        self._P.build_index()
+        self._base_parser.build_index()
+        self._schema_parser.build_index()
+
+        self._base_count = len(self._base_parser._index)
+        self._schema_count = len(self._schema_parser._index)
+
         Header = collections.namedtuple(
             "Header",
             "metadataOffset filetimeUnix server mappingOffset numObjects filetime".split(),
@@ -157,13 +176,13 @@ class LDIFSnapshot(object):
 
         # We don't know these things, they are not included in the LDIF
         # file, but the dependecy expects something here.
-        filetime = os.path.getmtime(self.path)
-        path = str(os.path.abspath(self.path)).replace(os.sep, "_")
+        filetime = os.path.getmtime(self._base_path)
+        path = str(os.path.abspath(self._base_path)).replace(os.sep, "_")
         self.header = Header(
             filetimeUnix=filetime,
             server="ldifdump" + path,
             mappingOffset=0,
-            numObjects=len(self._P._index),
+            numObjects=self._base_count + self._schema_count,
             filetime=str(filetime),
             metadataOffset=0,
         )
@@ -203,8 +222,9 @@ class LDIFSnapshot(object):
         pass
 
     def getObject(self, i):
-        obj = self._P.get_by_index(i)
-        return obj
+        if i < self._base_count:
+            return self._base_parser.get_by_index(i)
+        return self._schema_parser.get_by_index(i - self._base_count)
 
     @property
     def objects(self):
