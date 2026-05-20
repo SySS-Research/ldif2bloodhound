@@ -152,7 +152,7 @@ class LDIFSnapshot(object):
         self._P.build_index()
         Header = collections.namedtuple(
             "Header",
-            "filetimeUnix server mappingOffset numObjects filetime".split(),
+            "metadataOffset filetimeUnix server mappingOffset numObjects filetime".split(),
         )
 
         # We don't know these things, they are not included in the LDIF
@@ -165,6 +165,7 @@ class LDIFSnapshot(object):
             mappingOffset=0,
             numObjects=len(self._P._index),
             filetime=str(filetime),
+            metadataOffset=0,
         )
 
     def parseProperties(self):
